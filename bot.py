@@ -2,6 +2,9 @@ import logging
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 import sqlite3
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+import asyncio
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -115,7 +118,26 @@ async def question_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, q
     else:
         # Если последний вопрос, переходим к выводу результатов
         return await result(update, context)
+async def send_notifications(bot):
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT user_id, class FROM users')
+    users = cursor.fetchall()
+    conn.close()
 
+    for user_id, user_class in users:
+        message = "Специальное предложение для вас!"
+        # Здесь можно добавить логику для выбора сообщения на основе класса пользователя
+        if user_class == "Исследователь":
+            message = "Приключение ждет! Готовы к новым открытиям?"
+        elif user_class == "Мудрец":
+            message = "Специальный квест в библиотеке мудрецов!"
+        # Добавьте другие условия для разных классов
+        
+        try:
+            await bot.send_message(chat_id=user_id, text=message)
+        except Exception as e:
+            print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
 # Функция для вывода результата
 async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_id = update.message.from_user.id
@@ -145,6 +167,7 @@ def get_photo_path_based_on_class(character_class):
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text('Опрос отменен.', reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
+scheduler = AsyncIOScheduler()
 def main():
     application = Application.builder().token("6564573865:AAFz0XogD4kPuoBsUqNq0PRbDs9ybn0i96E").build()
 
@@ -163,10 +186,16 @@ def main():
     },
     fallbacks=[CommandHandler('cancel', cancel)],)
 
-
+    
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler('menu', show_user_menu))
-    application.run_polling()
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(send_notifications, 'interval', seconds=10, args=[application.bot])
+    scheduler.start()
+
+    loop = asyncio.get_event_loop()
+    loop.create_task(application.run_polling())
+    loop.run_forever()
 
 if __name__ == '__main__':
-    main()
+    main()    
