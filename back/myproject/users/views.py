@@ -2,9 +2,11 @@ from datetime import datetime
 
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializer import UserRegisterSerializer, LoginSerializer, UserHeaderSerializer, RegistrationConfirmView, \
@@ -33,9 +35,8 @@ class RegisterSendOTPView(GenericAPIView):
     def put(self, request, *args, **kwargs):
         pk = kwargs.get("pk", None)
         user = User.objects.get(pk=pk)
-        print(user.__dict__)
-        serializer = self.serializer_class(data=request.data, instance=user)
-        if serializer.is_valid():
+        serializer = self.serializer_class(instance=user, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
             serializer.save(raise_exception=True)
             user_data = serializer.data
 
@@ -49,16 +50,15 @@ class RegisterSendOTPView(GenericAPIView):
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
-class SetDataToUser(GenericAPIView):
-    serializer_class = UserRegisterSerializer
+class SetDataToUser(APIView):
 
-    def put(self, request, *args, **kwargs):
+
+    def put(self, request, **kwargs):
         pk = kwargs.get("pk", None)
-        user = User.objects.get(pk=pk)
-        print()
-        serializer = self.serializer_class(instance=user, data=request.data)
-        if serializer.is_valid():
-            serializer.save(raise_exception=False)
+        instance = User.objects.get(pk=pk)
+        serializer = UserRegisterSerializer(instance=instance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
             user_data = serializer.data
 
             return Response({
