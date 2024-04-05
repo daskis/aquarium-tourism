@@ -149,7 +149,7 @@ def get_photo_path_based_on_result(result):
     "Способен вызывать дождь, который гасит огонь и восстанавливает силы.": "dwarf_water_rider.png",
     "Использует ветер для увеличения скорости и маневренности своего боевого молота.": "dwarf_air_rider.png"
     }
-    default_image_path = "hermit.png"  # Предполагаем, что 'hermit.png' находится в папке 'images'
+    default_image_path = "hermit.jpg"  # Предполагаем, что 'hermit.png' находится в папке 'images'
 
     # Получаем путь к изображению из словаря, если результат существует; иначе используем путь к изображению по умолчанию
     image_path = images.get(result, default_image_path)
