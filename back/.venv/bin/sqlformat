@@ -1,4 +1,4 @@
-#!/home/exiz/hack/back4rdn/.venv/bin/python
+#!/home/exiz/inprogress/back/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
