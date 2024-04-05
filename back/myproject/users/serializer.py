@@ -1,6 +1,11 @@
+from datetime import datetime
+
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import User, OneTimePassword
 from django.contrib.auth import authenticate
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
 
@@ -62,7 +67,39 @@ class UserHeaderSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email']
 
+
 class RegistrationConfirmView(serializers.ModelSerializer):
     class Meta:
         model = OneTimePassword
         fields = ['email', 'otp']
+
+
+class UpdateTokensSerializer(serializers.ModelSerializer):
+    refresh_token = serializers.CharField(max_length=255)
+    access_token = serializers.CharField(max_length=255, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['refresh_token','access_token']
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        token = request.data['refresh_token']
+        refresh_token = RefreshToken(token)
+        now = datetime.utcnow()
+        if refresh_token.payload['exp'] < now.timestamp():
+            AuthenticationFailed("Refresh token истек")
+        user = User.objects.filter(refresh_token=refresh_token).first()
+        user_token = user.tokens()
+
+        return {
+            'access_token': str(user_token.get('access')),
+            'refresh_token': str(user_token.get('refresh')),
+        }
+
+
+
+
+
+
+

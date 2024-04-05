@@ -1,9 +1,13 @@
+from datetime import datetime
+
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
-from .serializer import UserRegisterSerializer, LoginSerializer, UserHeaderSerializer, RegistrationConfirmView
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .serializer import UserRegisterSerializer, LoginSerializer, UserHeaderSerializer, RegistrationConfirmView, UpdateTokensSerializer
 from .models import User, OneTimePassword
 from .utils import send_generated_otp_to_email
 
@@ -65,6 +69,21 @@ class LoginUserView(GenericAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class UpdateTokens(GenericAPIView):
+    serializer_class = UpdateTokensSerializer
+
+    def post(self,request):
+        refresh_token = request.data
+
+
+        user = User.objects.filter(refresh_token=refresh_token['refresh_token'])
+        serializer = self.serializer_class(data=request.data, context={'request':request})
+        serializer.is_valid(raise_exception=True)
+
+
+        return Response(serializer.data)
+
+
 
 class TestAuthView(GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -72,4 +91,6 @@ class TestAuthView(GenericAPIView):
     def get(self, request):
         data = {'it': 'works'}
         return Response(data, status=status.HTTP_200_OK)
+
+
 # Create your views here.
