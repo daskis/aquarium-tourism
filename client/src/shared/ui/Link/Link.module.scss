@@ -1,0 +1,45 @@
+.main {
+  text-decoration: none;
+  transition: all 0.3s ease;
+  &:hover {
+    filter: brightness(70%);
+  }
+}
+.h1 {
+  font: var(--paragraph-1);
+}
+
+.h2 {
+  font: var(--paragraph-2);
+}
+
+.h3 {
+  font: var(--paragraph-3);
+}
+
+.h4 {
+  font: var(--paragraph-4);
+}
+
+.h5 {
+  font: var(--paragraph-5);
+}
+
+.h6 {
+  font: var(--paragraph-6);
+}
+
+.link {
+  color: var(--link);
+}
+.primary {
+  color: var(--primary);
+}
+
+.light {
+  color: var(--white);
+}
+
+.dark {
+  color: var(--dark);
+}

@@ -1,0 +1,55 @@
+.heading {
+  transition: .3s all ease;
+}
+
+.h1 {
+  font: var(--heading-1);
+}
+
+.h2 {
+  font: var(--heading-2);
+}
+
+.h3 {
+  font: var(--heading-3);
+}
+
+.h4 {
+  font: var(--heading-4);
+}
+
+.h5 {
+  font: var(--heading-5);
+}
+
+.h6 {
+  font: var(--heading-6);
+}
+
+.primary {
+  color: var(--primary);
+}
+
+.secondary {
+  color: var(--secondary);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.link {
+  color: var(--link);
+}
+
+.success {
+  color: var(--success);
+}
+
+.light {
+  color: var(--white);
+}
+
+.dark {
+  color: var(--dark);
+}

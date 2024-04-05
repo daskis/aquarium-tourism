@@ -1,0 +1,83 @@
+:root {
+  --fontFamilyMain: Montserrat, sans-serif;
+  //--fontFamilySecond: NikoMoji, sans-serif;
+
+
+  --fontRegular: 400;
+  --fontMedium: 500;
+  --fontBold: 700;
+
+
+  --heading-size-1: 48px;
+  --heading-line-1: 48px;
+
+  --heading-size-2: 40px;
+  --heading-line-2: 40px;
+
+  --heading-size-3: 36px;
+  --heading-line-3: 36px;
+
+  --heading-size-4: 32px;
+  --heading-line-4: 32px;
+
+  --heading-size-5: 28px;
+  --heading-line-5: 28px;
+
+  --heading-size-6: 24px;
+  --heading-line-6: 24px;
+
+  --heading-size-7: 18px;
+  --heading-line-7: 18px;
+
+  --heading-1: var(--heading-size-1) / var(--heading-line-1) var(--fontFamilyMain);
+  --heading-2: var(--heading-size-2) / var(--heading-line-2) var(--fontFamilyMain);
+  --heading-3: var(--heading-size-3) / var(--heading-line-3) var(--fontFamilyMain);
+  --heading-4: var(--heading-size-4) / var(--heading-line-4) var(--fontFamilyMain);
+  --heading-5: var(--heading-size-5) / var(--heading-line-5) var(--fontFamilyMain);
+  --heading-6: var(--heading-size-6) / var(--heading-line-6) var(--fontFamilyMain);
+  --heading-7: var(--heading-size-7) / var(--heading-line-7) var(--fontFamilyMain);
+
+  --paragraph-size-1: 24px;
+  --paragraph-line-1: 36px;
+
+  --paragraph-size-2: 18px;
+  --paragraph-line-2: 28px;
+
+  --paragraph-size-3: 16px;
+  --paragraph-line-3: 24px;
+
+  --paragraph-size-4: 14px;
+  --paragraph-line-4: 20px;
+
+  --paragraph-size-5: 12px;
+  --paragraph-line-5: 16px;
+
+  --paragraph-size-6: 10px;
+  --paragraph-line-6: 14px;
+
+  --paragraph-1: var(--paragraph-size-1) / var(--paragraph-line-1) var(--fontFamilyMain);
+  --paragraph-2: var(--paragraph-size-2) / var(--paragraph-line-2) var(--fontFamilyMain);
+  --paragraph-3: var(--paragraph-size-3) / var(--paragraph-line-3) var(--fontFamilyMain);
+  --paragraph-4: var(--paragraph-size-4) / var(--paragraph-line-4) var(--fontFamilyMain);
+  --paragraph-5: var(--paragraph-size-5) / var(--paragraph-line-5) var(--fontFamilyMain);
+  --paragraph-6: var(--paragraph-size-6) / var(--paragraph-line-6) var(--fontFamilyMain);
+
+
+  --padding-1: 12px 24px;
+  --padding-2: 10px 20px;
+  --padding-3: 9px 18px;
+  --padding-4: 8px 16px;
+  --padding-5: 7px 14px;
+  --padding-6: 6px 12px;
+
+
+  --border-radius-1: 12px;
+  --border-radius-2: 10px;
+  --border-radius-3: 9px;
+  --border-radius-4: 8px;
+  --border-radius-5: 7px;
+  --border-radius-6: 6px;
+
+  --navbar-height: 70px;
+
+}

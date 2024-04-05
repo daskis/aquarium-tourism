@@ -1,3 +1,12 @@
+import { classNames, useTheme } from '@shared/lib';
+import { Outlet } from 'react-router-dom';
+
 export const App = () => {
-    return <div>124</div>;
+    const { theme } = useTheme();
+
+    return (
+        <div className={classNames('app', {}, [theme])}>
+            <Outlet />
+        </div>
+    );
 };

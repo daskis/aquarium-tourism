@@ -22,7 +22,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
     let result = await baseQuery(args, api, extraOptions);
 
     if (result?.error?.status === 401) {
-        const refreshResult = await baseQuery('/auth/refresh-tokens', api, extraOptions);
+        const refreshResult = await baseQuery('/token/refresh', api, extraOptions);
 
         if (refreshResult?.data) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment

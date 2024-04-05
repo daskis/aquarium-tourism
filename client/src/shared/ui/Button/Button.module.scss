@@ -1,0 +1,73 @@
+.button {
+  cursor: pointer;
+  border: none;
+  transition: .3s all ease;
+
+  &:hover {
+    filter: brightness(80%);
+  }
+
+
+  &:disabled {
+    background-color: var(--light);
+    cursor: not-allowed;
+  }
+}
+
+.h1 {
+  padding: var(--padding-1);
+  border-radius: var(--border-radius-1);
+}
+
+.h2 {
+  padding: var(--padding-2);
+  border-radius: var(--border-radius-2);
+}
+
+.h3 {
+  padding: var(--padding-3);
+  border-radius: var(--border-radius-3);
+}
+
+.h4 {
+  padding: var(--padding-4);
+  border-radius: var(--border-radius-4);
+}
+
+.h5 {
+  padding: var(--padding-5);
+  border-radius: var(--border-radius-5);
+}
+
+.h6 {
+  padding: var(--padding-6);
+  border-radius: var(--border-radius-6);
+}
+
+.primary {
+  background-color: var(--primary);
+}
+
+.secondary {
+  background-color: var(--secondary);
+}
+
+.danger {
+  background-color: var(--danger);
+}
+
+.link {
+  background-color: var(--link);
+}
+
+.success {
+  background-color: var(--success);
+}
+
+.light {
+  background-color: var(--light);
+}
+
+.dark {
+  background-color: var(--dark);
+}
