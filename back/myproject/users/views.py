@@ -7,7 +7,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializer import UserRegisterSerializer, LoginSerializer, UserHeaderSerializer, RegistrationConfirmView, UpdateTokensSerializer
+from .serializer import UserRegisterSerializer, LoginSerializer, UserHeaderSerializer, RegistrationConfirmView, \
+    UpdateTokensSerializer
 from .models import User, OneTimePassword
 from .utils import send_generated_otp_to_email
 
@@ -23,13 +24,51 @@ class RegisterSendOTPView(GenericAPIView):
             user_data = serializer.data
             send_generated_otp_to_email(user_data['email'], request)
 
-
-
             return Response({
                 'data': user_data,
                 'message': 'waiting otp verify'
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, *args, **kwargs):
+        pk = kwargs.get("pk", None)
+        user = User.objects.get(pk=pk)
+        print(user.__dict__)
+        serializer = self.serializer_class(data=request.data, instance=user)
+        if serializer.is_valid():
+            serializer.save(raise_exception=True)
+            user_data = serializer.data
+
+            return Response({
+                'data': user_data,
+                'message': 'waiting otp verify'
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'data': serializer.errors,
+            'message': 'waiting otp verify'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SetDataToUser(GenericAPIView):
+    serializer_class = UserRegisterSerializer
+
+    def put(self, request, *args, **kwargs):
+        pk = kwargs.get("pk", None)
+        user = User.objects.get(pk=pk)
+        print()
+        serializer = self.serializer_class(instance=user, data=request.data)
+        if serializer.is_valid():
+            serializer.save(raise_exception=False)
+            user_data = serializer.data
+
+            return Response({
+                'data': user_data,
+                'message': 'waiting otp verify'
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'data': serializer.errors,
+            'message': 'waiting otp verify'
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterConfirmView(GenericAPIView):
@@ -40,7 +79,6 @@ class RegisterConfirmView(GenericAPIView):
             passcode = request.data
             user_pass_obj = OneTimePassword.objects.filter(email=request.data.get('email')).first()
             serializer = self.serializer_class(data=passcode)
-
 
             if serializer.is_valid(raise_exception=True) and serializer.data['otp'] == user_pass_obj.otp:
                 user = User.objects.filter(email=request.data.get('email')).update(is_active=True)
@@ -66,23 +104,24 @@ class LoginUserView(GenericAPIView):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
-
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class UpdateTokens(GenericAPIView):
     serializer_class = UpdateTokensSerializer
 
-    def post(self,request):
+    def post(self, request):
         refresh_token = request.data
 
-
         user = User.objects.filter(refresh_token=refresh_token['refresh_token'])
-        serializer = self.serializer_class(data=request.data, context={'request':request})
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-
 
         return Response(serializer.data)
 
+
+class ResetPassword:
+    pass
 
 
 class TestAuthView(GenericAPIView):
@@ -91,6 +130,5 @@ class TestAuthView(GenericAPIView):
     def get(self, request):
         data = {'it': 'works'}
         return Response(data, status=status.HTTP_200_OK)
-
 
 # Create your views here.

@@ -17,7 +17,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'username', 'password', 'password2']
+        fields = ['email', 'username', 'password', ]
 
     def validate(self, attrs):
         password = attrs.get('password', '')
@@ -34,6 +34,13 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             password=validated_data.get('password')
         )
         return user
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get("username", instance.username)
+        instance.email = validated_data.get("username", instance.emal)
+        instance.password = validated_data.get("username", instance.password)
+        instance.save()
+        print(instance)
+        return instance
 
 class LoginSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=155, min_length=6)
@@ -96,10 +103,6 @@ class UpdateTokensSerializer(serializers.ModelSerializer):
             'access_token': str(user_token.get('access')),
             'refresh_token': str(user_token.get('refresh')),
         }
-
-
-
-
 
 
 

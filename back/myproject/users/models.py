@@ -73,7 +73,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         permissions = [
             ("change_role", "Can change the role of user"),
-            # Others customs permissions if needed
         ]
 
 
