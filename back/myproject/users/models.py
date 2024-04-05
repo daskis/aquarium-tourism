@@ -36,7 +36,7 @@ class UserManager(BaseUserManager):
         return user
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=20, unique=True)
     password = models.CharField(max_length=20)
     email = models.EmailField(max_length=255, unique=True)
@@ -51,11 +51,15 @@ class User(AbstractBaseUser):
 
     objects = UserManager()
 
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #     self.refresh_token = kwargs.get('refresh_token', None)
-    #     print(kwargs.get('refresh_token', None))
-    #     return super().save(*args, **kwargs)
+    @property
+    def is_staff(self):
+        return self.is_superuser
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
 
     def tokens(self):
         refresh = RefreshToken.for_user(self)
@@ -65,6 +69,12 @@ class User(AbstractBaseUser):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }
+
+    class Meta:
+        permissions = [
+            ("change_role", "Can change the role of user"),
+            # Others customs permissions if needed
+        ]
 
 
 
