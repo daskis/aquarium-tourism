@@ -15,15 +15,15 @@ interface IFamilyMember {
 export const UserFamily = () => {
     const list: IFamilyMember[] = [
         {
-            firstName: 'eblan1',
-            lastName: 'eblan1',
+            firstName: 'lorem1',
+            lastName: 'lorem1',
             age: 124,
             id: '124',
-            img: 'rdfadfa',
+            img: 'rdfaasdfa',
         },
         {
-            firstName: 'eblan2',
-            lastName: 'eblan2',
+            firstName: 'lorem2',
+            lastName: 'lorem2',
             age: 12,
             id: '12124',
             img: 'rdfadfa',

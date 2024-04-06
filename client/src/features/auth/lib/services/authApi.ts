@@ -3,14 +3,14 @@ import { LoginProps, RegisterProps, ResponseProps } from '@features/auth/lib';
 
 export const authApi = mainApi.injectEndpoints({
     endpoints: (build) => ({
-        login: build.mutation<LoginProps, ResponseProps>({
+        login: build.mutation<ResponseProps, LoginProps>({
             query: (data) => ({
                 url: `/auth/login/`,
                 method: 'POST',
                 body: data,
             }),
         }),
-        register: build.mutation<RegisterProps, ResponseProps>({
+        register: build.mutation<ResponseProps, RegisterProps>({
             query: (data) => ({
                 url: `/auth/register/`,
                 method: 'POST',

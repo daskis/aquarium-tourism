@@ -32,18 +32,18 @@ export const Home = () => {
 
     const locationList: ILocationItemProps[] = [
         {
-            location: 'Жопа1',
-            name: 'Жопа1',
+            location: 'loremPlace1',
+            name: 'lorem1',
             img: LocationImg,
         },
         {
-            location: 'Жопа2',
-            name: 'Жопа2',
+            location: 'loremPlace2',
+            name: 'lorem2',
             img: LocationImg,
         },
         {
-            location: 'Жопа3',
-            name: 'Жопа3',
+            location: 'loremPlace3',
+            name: 'lorem3',
             img: LocationImg,
         },
     ];

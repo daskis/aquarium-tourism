@@ -14,17 +14,17 @@ interface IUserArchive {
 export const UserArchive = () => {
     const list: IUserArchive[] = [
         {
-            from: 'eblan1',
-            to: 'eblan1',
-            dateStart: '124',
-            dateEnd: '124',
+            from: 'lorem',
+            to: 'lorem',
+            dateStart: '10.10.2001',
+            dateEnd: '10.11.2001',
             id: 'rdfadfa',
         },
         {
-            from: 'eblan1',
-            to: 'eblan1',
-            dateStart: '124',
-            dateEnd: '124',
+            from: 'lorem',
+            to: 'lore,',
+            dateStart: '11.10.2001',
+            dateEnd: '11.11.2001',
             id: 'rdfasdasadfa',
         },
     ];

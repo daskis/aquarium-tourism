@@ -10,3 +10,5 @@ export * from './UserChangeForm/UserChangeForm.tsx';
 
 export * from './UserInfoModal/UserInfoModal.tsx';
 export * from './UserInfoForm/UserInfoForm.tsx';
+
+export * from './UserSteps/UserSteps.tsx';

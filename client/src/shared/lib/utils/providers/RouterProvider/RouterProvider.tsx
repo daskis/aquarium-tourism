@@ -1,8 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { App } from '@app';
-import { Auth, Home, Login, Register, User } from '@pages/ui';
+import { Auth, Home, Login, Register, User, Map } from '@pages/ui';
 import { Toolbar } from '@widgets/ui';
-import { UserArchive, UserBasket, UserFamily, UserLiked } from '@features/user/ui';
+import { UserArchive, UserBasket, UserFamily, UserLiked, UserSteps } from '@features/user/ui';
 
 export const router = createBrowserRouter([
     {
@@ -31,10 +30,20 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: 'archive',
-                        element: <UserArchive />,
+                        children: [
+                            {
+                                index: true,
+                                element: <UserArchive />,
+                            },
+                            {
+                                path: ':id',
+                                element: <UserSteps />,
+                            },
+                        ],
                     },
                 ],
             },
+            { path: '/map', element: <Map /> },
         ],
     },
     {

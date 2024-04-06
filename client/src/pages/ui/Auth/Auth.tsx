@@ -12,7 +12,7 @@ export const Auth = () => {
                         Войти
                     </Button>
                 </Link>
-                <Link size={SizeEnum.H2} color={ColorEnum.LIGHT} to={'/auth/login'}>
+                <Link size={SizeEnum.H2} color={ColorEnum.LIGHT} to={'/auth/register'}>
                     <Button size={SizeEnum.H2} color={ColorEnum.SECONDARY}>
                         Зарегистрироваться
                     </Button>
