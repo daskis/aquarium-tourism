@@ -37,7 +37,8 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'pitstop',
+
+
     'users',
     'travels',
     # default

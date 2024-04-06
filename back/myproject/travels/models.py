@@ -15,8 +15,8 @@ class Locations(models.Model):
 
 
 class ImageLocation(models.Model):
-    image_url = models.ImageField(upload_to='images/', null=True, blank=True)
-    image = models.ForeignKey('Locations', on_delete=models.CASCADE)
+    image_url = models.ImageField(upload_to='images/locations/', null=True, blank=True)
+    image = models.ForeignKey('Locations', on_delete=models.CASCADE, to_field='id')
 
 
 
@@ -30,7 +30,7 @@ class Steps(models.Model):
             raise ValidationError("JSON data must contain keys 'time_started' and 'time_ended'.")
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # Вызываем метод clean перед сохранением
+        self.full_clean()
         super().save(*args, **kwargs)
 
 
