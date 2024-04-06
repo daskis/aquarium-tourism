@@ -43,25 +43,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
         return START_CHOICE
     else:
-        return await show_user_menu(update, context)
+        await update.message.reply_text(text='...',reply_markup=ReplyKeyboardRemove())
+        logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)
+        await send_menu_with_buttons(update, context)
+        return ConversationHandler.END 
+    
 
-async def show_user_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT username, class, image_path, speed, cunning, luck FROM users WHERE user_id = ?', (user_id,))
-    user_data = cursor.fetchone()
-    conn.close()
-    if user_data:
-        username, character_class, image_path, speed, cunning, luck = user_data
-        message = f"Имя: {username}\nКласс: {character_class}\nСкорость: {speed}, Хитрость: {cunning}, Удача: {luck}"
-        await update.message.reply_text(message)
-        if image_path and os.path.exists(image_path):
-            await update.message.reply_photo(photo=open(image_path, 'rb'))
-        else:
-            await update.message.reply_text("Изображение профиля отсутствует.")
-    else:
-        await update.message.reply_text("Профиль пользователя не найден. Выполните регистрацию, используя команду /register.")
 
 def is_user_registered(user_id):
     conn = sqlite3.connect('users.db')
@@ -74,17 +61,26 @@ def is_user_registered(user_id):
 async def start_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.message.text
     if query == '🧭 Начать выбор класса':
-        return await register(update, context)
+        return await question_handler(update, context, 0)
     elif query == '🆘 Попросить помощь':
         return await help(update, context)
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text('Не волнуйся, я здесь, чтобы помочь тебе! Смело задавай свой вопрос!')
+    logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)
     return ConversationHandler.END
 
 async def question_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, question_number: int) -> int:
     logger.info(f"User {update.effective_user.id} is in QUESTION_{question_number}, answered: {update.message.text}")
     user_answer = update.message.text
+    if question_number == 0:
+        next_question_number = question_number 
+        reply_keyboard = [list(map(lambda x: x[0], answers[next_question_number]))]
+        await update.message.reply_text(
+            questions[next_question_number],
+            reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True),
+        )
+        return next_question_number + 1
     for answer in answers[question_number - 1]:
         if user_answer == answer[0]:
             if 'results' not in context.user_data:
@@ -106,13 +102,16 @@ async def question_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, q
 async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     final_class = max(context.user_data['results'], key=context.user_data['results'].get)
     await update.message.reply_text(f"Твой класс: {final_class}. Используй команду /menu, чтобы увидеть меню.",reply_markup=ReplyKeyboardRemove())
+    logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)
+    
     return ConversationHandler.END
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    return START_CHOICE
+    return start_choice
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     update.message.reply_text(reply_markup=ReplyKeyboardRemove())
+    logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)
     await update.message.reply_text('Опрос отменен.', reply_markup=ReplyKeyboardRemove())
-        
+    logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)    
     return ConversationHandler.END
 async def send_notifications(bot):
     conn = sqlite3.connect('users.db')
@@ -127,90 +126,68 @@ async def send_notifications(bot):
             await bot.send_message(chat_id=user_id, text=message)
         except Exception as e:
             logger.error(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
-async def send_menu_with_buttons(update_or_bot, user_id=None):
-    bot = update_or_bot.bot if hasattr(update_or_bot, "bot") else update_or_bot
-    
-    # Determine the user_id based on context
-    if user_id is None and hasattr(update_or_bot, "effective_user"):
-        user_id = update_or_bot.effective_user.id
+async def send_menu_with_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
     
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     
-    if user_id:
-        # Fetch and send menu for a single user
-        cursor.execute('SELECT username, class, image_path, speed, cunning, luck FROM users WHERE user_id = ?', (user_id,))
-        users = [cursor.fetchone()]
-    else:
-        # Fetch and send menus for all users
-        cursor.execute('SELECT user_id, username, class, image_path, speed, cunning, luck FROM users')
-        users = cursor.fetchall()
-    
-    for user in users:
-        if user_id:
-            user = (user_id,) + user
-    cursor.execute('SELECT user_id, username, class, image_path, speed, cunning, luck FROM users')
-    for user in cursor.fetchall():
-        user_id, username, character_class, image_path, speed, cunning, luck = user
-        message = f"Имя: {username}\nКласс: {character_class}\nСкорость: {speed}, Хитрость: {cunning}, Удача: {luck}"
+    # Получаем данные пользователя из базы данных
+    cursor.execute('SELECT username, class, image_path, speed, cunning, luck FROM users WHERE user_id = ?', (user_id,))
+    user_data = cursor.fetchone()
 
+    if user_data:
+        username, character_class, image_path, speed, cunning, luck = user_data
+        # Формируем сообщение пользователя с его данными
+        personal_message = f"Имя: {username}\nКласс: {character_class}\nСкорость: {speed}, Хитрость: {cunning}, Удача: {luck}"
+        
+        # Создаем клавиатуру с кнопками
         keyboard = [
             [InlineKeyboardButton("Квесты", callback_data='quests'),
-             InlineKeyboardButton("Спецпредложения", callback_data='offers')]
+             InlineKeyboardButton("Спецпредложения", callback_data='offers')],
+            [InlineKeyboardButton("Меню", callback_data='menu')]
         ]
-        reply_markup = InlineKeyboardMarkup(keyboard, one_time_keyboard=True)
-        try:
-            await bot.send_message(chat_id=user_id, text=message, reply_markup=reply_markup)
-            if image_path and os.path.exists(image_path):
-                with open(image_path, 'rb') as photo:
-                    await bot.send_photo(chat_id=user_id, photo=photo)
-            else:
-                await bot.send_message(chat_id=user_id, text="Изображение профиля отсутствует.")
-        except Exception as e:
-            print(f"Не удалось отправить сообщение пользователю {user_id}: {e}")
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        # Отправляем сообщение с клавиатурой
+        await context.bot.send_message(chat_id=user_id, text=personal_message, reply_markup=reply_markup)
+        
+        # Если есть изображение профиля, отправляем его
+        if image_path and os.path.exists(image_path):
+            with open(image_path, 'rb') as photo:
+                await context.bot.send_photo(chat_id=user_id, photo=photo)
+    else:
+        # Если пользователь не найден, отправляем сообщение об этом
+        await context.bot.send_message(chat_id=user_id, text="Профиль пользователя не найден. Выполните регистрацию, используя команду /start.")
+    
     conn.close()
+# async def show_user_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     user_id = update.message.from_user.id
+#     conn = sqlite3.connect('users.db')
+#     cursor = conn.cursor()
+#     cursor.execute('SELECT username, class, image_path, speed, cunning, luck FROM users WHERE user_id = ?', (user_id,))
+#     user_data = cursor.fetchone()
+#     conn.close()
+#     if user_data:
+#         username, character_class, image_path, speed, cunning, luck = user_data
+#         message = f"Имя: {username}\nКласс: {character_class}\nСкорость: {speed}, Хитрость: {cunning}, Удача: {luck}"
+#         await update.message.reply_text(message)
+#         if image_path and os.path.exists(image_path):
+#             await update.message.reply_photo(photo=open(image_path, 'rb'))
+#         else:
+#             await update.message.reply_text("Изображение профиля отсутствует.")
+#     else:
+#         await update.message.reply_text("Профиль пользователя не найден. Выполните регистрацию, используя команду /register.")
+
 async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Assuming send_menu_with_buttons is adapted to work with an update object
+    await update.message.reply_text(f"Твой класс: {final_class}. Используй команду /menu, чтобы увидеть меню.",reply_markup=ReplyKeyboardRemove())
+    logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)
+
     await send_menu_with_buttons(update)
     # Return an appropriate state or end the conversation
     return ConversationHandler.END 
-# def get_all_registered_users():
-#     """Получает список всех зарегистрированных пользователей из базы данных."""
-#     # Подключение к базе данных
-#     conn = sqlite3.connect('users.db')
-#     cursor = conn.cursor()
 
-#     # Выполнение запроса для получения списка идентификаторов пользователей
-#     cursor.execute('SELECT user_id FROM users')
-#     users = cursor.fetchall()
-
-#     # Закрытие подключения к базе данных
-#     conn.close()
-
-#     # Преобразование полученного списка кортежей в список идентификаторов
-#     user_ids = [user[0] for user in users]
-#     return user_ids
-# async def send_welcome_message(bot):
-#     users = get_all_registered_users()
-#     for user in users:
-#         # Здесь будет логика, аналогичная show_user_menu, но адаптированная для использования с bot.send_message
-#         conn = sqlite3.connect('users.db')
-#         cursor = conn.cursor()
-#         cursor.execute('SELECT username, class, image_path, speed, cunning, luck FROM users WHERE user_id = ?', (user,))
-#         user_data = cursor.fetchone()
-#         conn.close()
-        
-#         if user_data:
-#             username, character_class, image_path, speed, cunning, luck = user_data
-#             message = f"Имя: {username}\nКласс: {character_class}\nСкорость: {speed}, Хитрость: {cunning}, Удача: {luck}"
-#             await bot.send_message(chat_id=user, text=message)
-#             if image_path and os.path.exists(image_path):
-#                 await bot.send_photo(chat_id=user, photo=open(image_path, 'rb'))
-#             else:
-#                 await bot.send_message(chat_id=user, text="Изображение профиля отсутствует.")
-#         else:
-#             # Этот блок кода не будет выполнен, так как users возвращает только зарегистрированных пользователей
-#             pass
 async def send_special_quest(update: Update, context: ContextTypes.DEFAULT_TYPE, quest_id=None):
     conn = sqlite3.connect('quests_offers.db')
     cursor = conn.cursor()
@@ -300,7 +277,7 @@ def main():
                 
         RESULT: [MessageHandler(filters.TEXT & ~filters.COMMAND, result)],
         HELP: [MessageHandler(filters.Regex('^(🆘 Попросить помощь)$'), help)],
-        MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, show_menu)],  # Add your MENU state here
+        MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, send_menu_with_buttons)],  # Add your MENU state here
     },
     fallbacks=[CommandHandler('cancel', cancel)],)
     #application.add_handler(MessageHandler(filters.ALL, all_update_handler)) # for DEBUG
@@ -308,7 +285,7 @@ def main():
     
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler('register', register))
-    application.add_handler(CommandHandler('menu', show_user_menu))
+    application.add_handler(CommandHandler('menu', send_menu_with_buttons))
     application.add_handler(CallbackQueryHandler(button_callback_handler))
     scheduler = AsyncIOScheduler()
     scheduler.add_job(send_notifications, 'interval', seconds=130, args=[application.bot])
