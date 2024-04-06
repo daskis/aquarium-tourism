@@ -1,0 +1,13 @@
+.avatar {
+  display: flex;
+  justify-content: center;
+  & svg {
+    width: 150px;
+    height: 150px;
+  }
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}

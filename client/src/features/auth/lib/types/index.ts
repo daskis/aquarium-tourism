@@ -1,13 +1,12 @@
 export interface AuthProps {
-    emailOrLogin: string;
+    username: string;
     password: string;
 }
 
 export interface LoginProps extends AuthProps {}
 
-export interface RegisterProps extends Omit<AuthProps, 'emailOrLogin'> {
+export interface RegisterProps extends AuthProps {
     email: string;
-    login: string;
     repeatPassword: string;
 }
 

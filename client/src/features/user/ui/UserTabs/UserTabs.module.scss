@@ -1,0 +1,20 @@
+.list {
+  display: flex;
+  justify-content: space-between;
+
+  &Item {
+    padding: 20px;
+
+    & svg {
+      width: 35px;
+      height: 35px;
+    }
+
+    &Active {
+      & path {
+        fill: var(--primary);
+        stroke: var(--primary);
+      }
+    }
+  }
+}

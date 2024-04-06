@@ -1,12 +1,10 @@
 import { classNames, useTheme } from '@shared/lib';
-import { Outlet } from 'react-router-dom';
+import { DetailedHTMLProps, HTMLAttributes } from 'react';
 
-export const App = () => {
+interface IAppProps extends DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> {}
+
+export const App = ({ children }: IAppProps) => {
     const { theme } = useTheme();
 
-    return (
-        <div className={classNames('app', {}, [theme])}>
-            <Outlet />
-        </div>
-    );
+    return <div className={classNames('app', {}, [theme])}>{children}</div>;
 };

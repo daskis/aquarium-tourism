@@ -13,12 +13,8 @@ export const LoginForm = () => {
     } = useForm<LoginProps>();
 
     const { loginTrigger, isLoading } = useLogin();
-    const emailOrLogin = register('emailOrLogin', {
-        required: 'Почта обязательна',
-        pattern: {
-            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-            message: 'Введите корректный адрес электронной почты',
-        },
+    const username = register('username', {
+        required: 'Поле обязательно',
     });
 
     const password = register('password', {
@@ -48,14 +44,14 @@ export const LoginForm = () => {
             </Heading>
             <div className={cls.wrapper}>
                 <Controller
-                    name="emailOrLogin"
+                    name="username"
                     control={control}
                     render={({ field }) => (
                         <Input
                             className={classNames(
                                 '',
                                 {
-                                    [cls.errorInput]: !!errors.emailOrLogin,
+                                    [cls.errorInput]: !!errors.username,
                                 },
                                 [],
                             )}
@@ -65,14 +61,14 @@ export const LoginForm = () => {
                             onChange={field.onChange}
                             size={SizeEnum.H3}
                             color={ColorEnum.PRIMARY}
-                            name="login"
-                            register={emailOrLogin}
+                            name="username"
+                            register={username}
                         />
                     )}
                 />
-                {errors.emailOrLogin && (
+                {errors.username && (
                     <Paragraph className={cls.error} size={SizeEnum.H5} color={ColorEnum.DANGER}>
-                        {errors.emailOrLogin.message}
+                        {errors.username.message}
                     </Paragraph>
                 )}
             </div>

@@ -13,7 +13,7 @@ export const RegisterForm = () => {
         watch,
     } = useForm<RegisterProps>();
     const { registerTrigger, isLoading } = useRegister();
-    const login = register('login', {
+    const username = register('username', {
         required: 'Логин обязателен',
         minLength: {
             value: 4,
@@ -68,14 +68,14 @@ export const RegisterForm = () => {
             </Heading>
             <div className={cls.wrapper}>
                 <Controller
-                    name="login"
+                    name="username"
                     control={control}
                     render={({ field }) => (
                         <Input
                             className={classNames(
                                 '',
                                 {
-                                    [cls.errorInput]: !!errors.login,
+                                    [cls.errorInput]: !!errors.username,
                                 },
                                 [],
                             )}
@@ -85,14 +85,14 @@ export const RegisterForm = () => {
                             onChange={field.onChange}
                             size={SizeEnum.H3}
                             color={ColorEnum.PRIMARY}
-                            name="login"
-                            register={login}
+                            name="username"
+                            register={username}
                         />
                     )}
                 />
-                {errors.login && (
+                {errors.username && (
                     <Paragraph className={cls.error} size={SizeEnum.H5} color={ColorEnum.DANGER}>
-                        {errors.login.message}
+                        {errors.username.message}
                     </Paragraph>
                 )}
             </div>

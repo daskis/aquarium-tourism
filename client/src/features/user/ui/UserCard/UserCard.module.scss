@@ -1,0 +1,32 @@
+.wrapper {
+  background-color: var(--dark);
+  padding: 15px 20px;
+  border-radius: var(--border-radius-20);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.avatar {
+  cursor: pointer;
+  & svg {
+    width: 40px;
+    height: 40px;
+
+    & path {
+      fill: var(--primary);
+    }
+  }
+}
+
+.moreInfo {
+  cursor: pointer;
+  & svg {
+    width: 25px;
+    height: 25px;
+
+    & path {
+      fill: var(--white);
+    }
+  }
+}
