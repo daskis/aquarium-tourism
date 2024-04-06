@@ -2,6 +2,7 @@ import logging
 import sqlite3
 import asyncio
 import os
+import requests
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters, CallbackQueryHandler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -65,9 +66,56 @@ async def start_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     elif query == '🆘 Попросить помощь':
         return await help(update, context)
 
+user_contexts = {}
+
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text('Не волнуйся, я здесь, чтобы помочь тебе! Смело задавай свой вопрос!')
-    logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)
+    user_id = update.effective_user.id
+    logger.info(f"/help command triggered by user {user_id}")
+    user_id = update.effective_user.id
+    user_question = update.message.text
+
+    # Initialize context for new users
+    if user_id not in user_contexts:
+        user_contexts[user_id] = []
+
+    # Construct the prompt including context and the current question
+    context_plus_question = "\n".join(user_contexts[user_id] + [user_question])
+    logger.info(f"Question is {user_question}")
+    # API request to ChatGPT
+    
+    try:
+        response = requests.post(
+        "https://api.openai.com/v1/completions",
+        json={
+            "model": "gpt-3.5-turbo",  # Choose an appropriate model
+            "prompt": context_plus_question,
+            "max_tokens": 550,  # Adjust based on your needs
+        },
+        headers={
+            "Authorization": f"Bearer "
+        }
+        ).json() # This will raise an exception for HTTP error responses
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request to OpenAI failed: {e}")
+        await update.message.reply_text("Sorry, I couldn't process your request.")
+        return ConversationHandler.END
+
+    chat_response = response.get('choices', [{}])[0].get('text', '').strip()
+
+    # Send the response back to the user
+    #await update.message.reply_text(chat_response)
+    if chat_response.strip():  # Checks if chat_response is not just whitespace
+        await update.message.reply_text(chat_response)
+    else:
+    # Fallback message or handle the empty response accordingly
+        await update.message.reply_text("Sorry, I couldn't generate a response.")
+    # Update context for this user
+    user_contexts[user_id].append(user_question)
+    user_contexts[user_id].append(chat_response)
+    # Ensure only the last 3 interactions (1.5 rounds) are kept
+    user_contexts[user_id] = user_contexts[user_id][-6:]
+
+    logger.info("Provided help response to user %s", user_id)
     return ConversationHandler.END
 
 async def question_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, question_number: int) -> int:
@@ -105,14 +153,17 @@ async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     
     save_user_data(user_id, username, final_class, "")
     return ConversationHandler.END
+
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return start_choice
+
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     update.message.reply_text(reply_markup=ReplyKeyboardRemove())
     logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)
     await update.message.reply_text('Опрос отменен.', reply_markup=ReplyKeyboardRemove())
     logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)    
     return ConversationHandler.END
+
 async def send_notifications(bot):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
@@ -126,6 +177,7 @@ async def send_notifications(bot):
             await bot.send_message(chat_id=user_id, text=message)
         except Exception as e:
             logger.error(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
+
 async def send_menu_with_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
@@ -161,7 +213,6 @@ async def send_menu_with_buttons(update: Update, context: ContextTypes.DEFAULT_T
         await context.bot.send_message(chat_id=user_id, text="Профиль пользователя не найден. Выполните регистрацию, используя команду /start.")
     
     conn.close()
-
 
 async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Assuming send_menu_with_buttons is adapted to work with an update object
@@ -210,7 +261,6 @@ async def send_special_quest(update: Update, context: ContextTypes.DEFAULT_TYPE,
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message, reply_markup=reply_markup, parse_mode="Markdown")
 
-
 async def send_special_offers(update: Update, context: ContextTypes.DEFAULT_TYPE, offer_id=None):
     conn = sqlite3.connect('users.db')  # Ensure this points to the correct database
     cursor = conn.cursor()
@@ -254,8 +304,6 @@ async def send_special_offers(update: Update, context: ContextTypes.DEFAULT_TYPE
         # This example sends a message without an image.
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message, reply_markup=reply_markup, parse_mode="Markdown")
 
-
-
 async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("I am called")
     query = update.callback_query
@@ -275,8 +323,12 @@ async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     elif action == 'offers':
         await send_special_offers(update, context, offer_id=item_id)
     elif action == 'menu':
-        await send_menu_with_buttons(update, context)  # Ensure this function exists or adjust accordingly.
+        await send_menu_with_buttons(update, context)
+    else:
+        await help(update, context)  # Ensure this function exists or adjust accordingly.
 
+async def text_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await help(update, context)
 #async def all_update_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #   logger.info(f"Received update: {update}")
 def main():
@@ -298,7 +350,8 @@ def main():
     fallbacks=[CommandHandler('cancel', cancel)],)
     #application.add_handler(MessageHandler(filters.ALL, all_update_handler)) # for DEBUG
 
-    
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_message_handler))
+    application.add_handler(CommandHandler('help', help))
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler('register', register))
     application.add_handler(CommandHandler('menu', send_menu_with_buttons))
