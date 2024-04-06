@@ -1,5 +1,5 @@
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,6 +9,7 @@ from .models import User
 
 class RegisterSendOTPView(GenericAPIView):
     serializer_class = UserRegisterSerializer
+    authentication_classes = []
 
     def post(self, request):
         user = request.data
@@ -81,25 +82,32 @@ class SetDataToUser(APIView):
 
 class LoginUserView(GenericAPIView):
     serializer_class = LoginSerializer
+    authentication_classes = []
+
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         resp = Response({"access_token":serializer.data['access_token']}, status=status.HTTP_200_OK)
-        resp.set_cookie('refresh_token',serializer.data['refresh_token'])
+        resp.set_cookie('refresh_token',serializer.data['refresh_token'], path='', httponly=True)
         return resp
 
 class UpdateTokens(GenericAPIView):
     serializer_class = UpdateTokensSerializer
+    permission_classes = [AllowAny,]
+    authentication_classes = []
 
-    def post(self, request):
-        refresh_token = request.data
-        user = User.objects.filter(refresh_token=refresh_token['refresh_token'])
-        serializer = self.serializer_class(data=request.data, context={'request': request})
+    def get(self, request):
+        print(request.COOKIES)
+        refresh_token = request.COOKIES['refresh_token']
+
+
+
+        serializer = self.serializer_class(data=request.COOKIES, context={'refresh_token': refresh_token})
         serializer.is_valid(raise_exception=True)
-
+        #print(serializer.data['refresh_token'])
         resp = Response({"access_token": serializer.data['access_token']}, status=status.HTTP_200_OK)
-        resp.set_cookie('refresh_token', serializer.data['refresh_token'])
+        resp.set_cookie('refresh_token', serializer.data['refresh_token'],path='', httponly=True)
         return resp
 
 

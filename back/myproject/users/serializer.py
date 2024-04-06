@@ -1,32 +1,27 @@
-from datetime import datetime
-from types import NoneType
-
 from rest_framework import serializers
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .models import User, OneTimePassword
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=68, min_length=6, write_only=True)
-    password2 = serializers.CharField(max_length=68, min_length=6, write_only=True)
+    repeatPassword = serializers.CharField(max_length=68, min_length=6, write_only=True)
     avatar = serializers.ImageField(use_url=True, required=False)
 
     def validate(self, attrs):
         password = attrs.get('password', '')
-        password2 = attrs.get('password2', '')
-        if password != password2:
+        repeatPassword = attrs.get('repeatPassword', '')
+        if password != repeatPassword:
             raise serializers.ValidationError("passwords do not match")
 
         return attrs
 
     class Meta:
         model = User
-        fields = ['email', 'username', 'password', 'password2', 'avatar']
+        fields = ['email', 'username', 'password', 'repeatPassword', 'avatar']
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -68,6 +63,7 @@ class LoginSerializer(serializers.ModelSerializer):
         if not user.is_active:
             raise AuthenticationFailed("unactive")
         user_token = user.tokens()
+        print(RefreshToken(user_token.get('refresh')))
 
 
         return {
@@ -89,7 +85,7 @@ class RegistrationConfirmView(serializers.ModelSerializer):
 
 
 class UpdateTokensSerializer(serializers.ModelSerializer):
-    refresh_token = serializers.CharField(max_length=255)
+    refresh_token = serializers.CharField(max_length=255,read_only=True)
     access_token = serializers.CharField(max_length=255, read_only=True)
 
     class Meta:
@@ -98,21 +94,32 @@ class UpdateTokensSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
 
-        request = self.context.get('request')
-        token = request.data['refresh_token']
-        try:
+        refresh_token = self.context.get('refresh_token')
+        #refresh_token = attrs
+        print('111', User.objects.filter(username='101277').first().refresh_token)
+
+        # try:
             # now = datetime.utcnow()
             # if refresh_token.payload['exp'] < now.timestamp():
             #     AuthenticationFailed("Refresh token истек")
-            refresh_token = RefreshToken(token)
-            user = User.objects.filter(refresh_token=refresh_token).first()
-        except TokenError as token_err:
-            raise serializers.ValidationError({"refresh_token":str(token_err)})
-        except Exception as err:
-            return serializers.ValidationError({"Error":str(err)})
+        print(refresh_token, "+++")
+
+        print(User.objects.filter(username='101277').first().refresh_token, "---")
+        user = User.objects.filter(refresh_token=refresh_token).first()
+        print('111',User.objects.filter(username='101277').first().refresh_token == refresh_token)
+        # print(user)
+        if user is None:
+            raise TokenError
+        refresh_token = RefreshToken(refresh_token)
+
+        # except TokenError as token_err:
+        #     raise serializers.ValidationError({"cookie":str(token_err)})
+        # except Exception as err:
+        #     return serializers.ValidationError({"Error":str(err)})
         user_token = user.tokens()
 
         user_token.get('refresh')
+        print("123",str(user_token.get('refresh')))
 
         return {
             'refresh_token': str(user_token.get('refresh')),
