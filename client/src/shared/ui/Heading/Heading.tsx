@@ -136,5 +136,27 @@ export const Heading = ({ size, color, children, className, ...props }: IHeading
                     {children}
                 </h6>
             );
+        case SizeEnum.H7:
+            return (
+                <h6
+                    {...props}
+                    className={classNames(
+                        cls.heading,
+                        {
+                            [cls.h7]: size === SizeEnum.H7,
+                            [cls.dark]: color === ColorEnum.DARK,
+                            [cls.light]: color === ColorEnum.LIGHT,
+                            [cls.danger]: color === ColorEnum.DANGER,
+                            [cls.primary]: color === ColorEnum.PRIMARY,
+                            [cls.secondary]: color === ColorEnum.SECONDARY,
+                            [cls.success]: color === ColorEnum.SUCCESS,
+                            [cls.link]: color === ColorEnum.LINK,
+                        },
+                        [className],
+                    )}
+                >
+                    {children}
+                </h6>
+            );
     }
 };

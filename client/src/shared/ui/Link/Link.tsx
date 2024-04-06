@@ -12,6 +12,7 @@ export const Link = ({ size, color, to, children, className }: ILinkProps) => {
                     // COLORS
                     [cls.link]: color === ColorEnum.LINK,
                     [cls.primary]: color === ColorEnum.PRIMARY,
+                    [cls.secondary]: color === ColorEnum.SECONDARY,
                     [cls.dark]: color === ColorEnum.DARK,
                     [cls.light]: color === ColorEnum.LIGHT,
 

@@ -21,13 +21,7 @@ export const Select = ({ list, onSelect }: ISelectProps) => {
         <div className={cls.wrapper}>
             <div onClick={handleSelectClick} className={cls.button}>
                 <Paragraph color={ColorEnum.LIGHT} size={SizeEnum.H3}>
-                    {selectedValue ? (
-                        list.find((item) => item.value === selectedValue)?.label
-                    ) : (
-                        <Paragraph color={ColorEnum.LIGHT} size={SizeEnum.H3}>
-                            Выберите место
-                        </Paragraph>
-                    )}
+                    {selectedValue ? list.find((item) => item.value === selectedValue)?.label : 'Выберите место'}
                 </Paragraph>
                 <span
                     className={classNames(
