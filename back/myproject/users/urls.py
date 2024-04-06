@@ -1,5 +1,9 @@
+
+from django.conf.urls.static import static
 from django.urls import path
 from .views import *
+from django.conf import settings
+from django.views.static import serve
 
 urlpatterns = [
     path('register/', RegisterSendOTPView.as_view(), name='register'),
@@ -8,8 +12,6 @@ urlpatterns = [
     path('login/', LoginUserView.as_view(), name='login'),
     #path('somewhat/dont_attract', TestAuthView.as_view(), name='some'),
     path('token/refresh/', UpdateTokens.as_view(), name='token_refresh'),
-
-
 ]
 
 

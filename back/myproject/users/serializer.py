@@ -14,6 +14,7 @@ from rest_framework.exceptions import AuthenticationFailed
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=68, min_length=6, write_only=True)
     password2 = serializers.CharField(max_length=68, min_length=6, write_only=True)
+    avatar = serializers.ImageField(use_url=True, required=False)
 
     def validate(self, attrs):
         password = attrs.get('password', '')

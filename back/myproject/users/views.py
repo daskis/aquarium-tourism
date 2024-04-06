@@ -27,10 +27,20 @@ class RegisterSendOTPView(GenericAPIView):
 
 
 class SetDataToUser(APIView):
-
+    permission_classes = [IsAuthenticated,]
+    def get(self, request, **kwargs):
+        pk = kwargs.get("pk", None)
+        instance = User.objects.get(pk=pk)
+        serializer = UserRegisterSerializer(instance=instance)
+        return(Response({
+                'data': serializer.data,
+                'message': 'waiting otp verify'
+            }, status=status.HTTP_200_OK)
+)
     def put(self, request, **kwargs):
         pk = kwargs.get("pk", None)
         instance = User.objects.get(pk=pk)
+        print(instance)
         serializer = UserRegisterSerializer(instance=instance, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
