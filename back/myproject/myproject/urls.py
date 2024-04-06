@@ -42,6 +42,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include("users.urls")),
     path('api/v1/pitsops/', include("pitstop.urls")),
+    path('api/v1/travels/', include("travels.urls")),
 
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
