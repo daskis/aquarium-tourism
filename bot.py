@@ -105,12 +105,14 @@ async def question_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, q
 
 async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     final_class = max(context.user_data['results'], key=context.user_data['results'].get)
-    await update.message.reply_text(f"Твой класс: {final_class}. Используй команду /menu, чтобы увидеть меню.")
+    await update.message.reply_text(f"Твой класс: {final_class}. Используй команду /menu, чтобы увидеть меню.",reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return START_CHOICE
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    update.message.reply_text(reply_markup=ReplyKeyboardRemove())
     await update.message.reply_text('Опрос отменен.', reply_markup=ReplyKeyboardRemove())
+        
     return ConversationHandler.END
 async def send_notifications(bot):
     conn = sqlite3.connect('users.db')
@@ -156,7 +158,7 @@ async def send_menu_with_buttons(update_or_bot, user_id=None):
             [InlineKeyboardButton("Квесты", callback_data='quests'),
              InlineKeyboardButton("Спецпредложения", callback_data='offers')]
         ]
-        reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+        reply_markup = InlineKeyboardMarkup(keyboard, one_time_keyboard=True)
         try:
             await bot.send_message(chat_id=user_id, text=message, reply_markup=reply_markup)
             if image_path and os.path.exists(image_path):
@@ -282,8 +284,8 @@ async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_
         await send_special_offers(update, context, offer_id if len(data) > 1 else None)
     elif data.startswith('menu'):
         await show_user_menu(update, context)
-async def all_update_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info(f"Received update: {update}")
+#async def all_update_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#   logger.info(f"Received update: {update}")
 def main():
     application = Application.builder().token("6564573865:AAFz0XogD4kPuoBsUqNq0PRbDs9ybn0i96E").build()
     conv_handler = ConversationHandler(
@@ -301,7 +303,7 @@ def main():
         MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, show_menu)],  # Add your MENU state here
     },
     fallbacks=[CommandHandler('cancel', cancel)],)
-    application.add_handler(MessageHandler(filters.ALL, all_update_handler))
+    #application.add_handler(MessageHandler(filters.ALL, all_update_handler)) # for DEBUG
 
     
     application.add_handler(conv_handler)
