@@ -3,7 +3,7 @@ import sqlite3
 import asyncio
 import os
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters, CallbackQueryHandler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -83,6 +83,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 async def question_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, question_number: int) -> int:
+    logger.info(f"User {update.effective_user.id} is in QUESTION_{question_number}, answered: {update.message.text}")
     user_answer = update.message.text
     for answer in answers[question_number - 1]:
         if user_answer == answer[0]:
@@ -107,9 +108,6 @@ async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(f"Твой класс: {final_class}. Используй команду /menu, чтобы увидеть меню.")
     return ConversationHandler.END
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    # Логика регистрации пользователя
-    await update.message.reply_text("Давайте зарегистрируем вас! Начнем с выбора вашего класса.")
-    # Продолжение процесса регистрации...
     return START_CHOICE
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text('Опрос отменен.', reply_markup=ReplyKeyboardRemove())
@@ -127,9 +125,28 @@ async def send_notifications(bot):
             await bot.send_message(chat_id=user_id, text=message)
         except Exception as e:
             logger.error(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
-async def send_menu_with_buttons(bot):
+async def send_menu_with_buttons(update_or_bot, user_id=None):
+    bot = update_or_bot.bot if hasattr(update_or_bot, "bot") else update_or_bot
+    
+    # Determine the user_id based on context
+    if user_id is None and hasattr(update_or_bot, "effective_user"):
+        user_id = update_or_bot.effective_user.id
+    
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
+    
+    if user_id:
+        # Fetch and send menu for a single user
+        cursor.execute('SELECT username, class, image_path, speed, cunning, luck FROM users WHERE user_id = ?', (user_id,))
+        users = [cursor.fetchone()]
+    else:
+        # Fetch and send menus for all users
+        cursor.execute('SELECT user_id, username, class, image_path, speed, cunning, luck FROM users')
+        users = cursor.fetchall()
+    
+    for user in users:
+        if user_id:
+            user = (user_id,) + user
     cursor.execute('SELECT user_id, username, class, image_path, speed, cunning, luck FROM users')
     for user in cursor.fetchall():
         user_id, username, character_class, image_path, speed, cunning, luck = user
@@ -150,7 +167,11 @@ async def send_menu_with_buttons(bot):
         except Exception as e:
             print(f"Не удалось отправить сообщение пользователю {user_id}: {e}")
     conn.close()
-
+async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Assuming send_menu_with_buttons is adapted to work with an update object
+    await send_menu_with_buttons(update)
+    # Return an appropriate state or end the conversation
+    return ConversationHandler.END 
 # def get_all_registered_users():
 #     """Получает список всех зарегистрированных пользователей из базы данных."""
 #     # Подключение к базе данных
@@ -188,14 +209,29 @@ async def send_menu_with_buttons(bot):
 #         else:
 #             # Этот блок кода не будет выполнен, так как users возвращает только зарегистрированных пользователей
 #             pass
-async def send_random_quest(update: Update, context: ContextTypes.DEFAULT_TYPE, quest_id=None):
-    # Здесь логика для выбора квеста по quest_id, если он указан,
-    # или случайного квеста, если quest_id=None
-    # Также необходимо реализовать логику для определения next_quest_id и prev_quest_id
+async def send_special_quest(update: Update, context: ContextTypes.DEFAULT_TYPE, quest_id=None):
+    conn = sqlite3.connect('quests_offers.db')
+    cursor = conn.cursor()
+    
+    if quest_id is None:
+        cursor.execute('SELECT * FROM quests ORDER BY RANDOM() LIMIT 1')
+    else:
+        cursor.execute('SELECT * FROM quests WHERE id = ?', (quest_id,))
+    
+    quest = cursor.fetchone()
 
-    quest = {"id": "quest_id", "title": "Тайна старинного замка", "description": "Разгадайте тайны...", "image_url": "http://example.com/quest.jpg"}
-    next_quest_id = "next_quest_id"
-    prev_quest_id = "prev_quest_id"
+    if quest is None:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Квест не найден.")
+        return
+
+    quest_id, title, description, image_url = quest
+    cursor.execute('SELECT id FROM quests WHERE id < ? ORDER BY id DESC LIMIT 1', (quest_id,))
+    prev_quest = cursor.fetchone()
+    prev_quest_id = prev_quest[0] if prev_quest else None
+
+    cursor.execute('SELECT id FROM quests WHERE id > ? ORDER BY id ASC LIMIT 1', (quest_id,))
+    next_quest = cursor.fetchone()
+    next_quest_id = next_quest[0] if next_quest else None
 
     message = f"*{quest['title']}*\n{quest['description']}"
     keyboard = [
@@ -233,17 +269,21 @@ async def send_special_offers(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("I am called")
     query = update.callback_query
     await query.answer()
     data = query.data   
-    if data.startswith('Квесты'):
+    logger.info(f"Received callback query: {query.data}")
+    if data.startswith('quests'):
         quest_id = data.split(':')[1]
-        await send_random_quest(update, context, quest_id if len(data) > 1 else None)
-    elif data.startswith('Спецпредложения'):
+        await send_special_quest(update, context, quest_id if len(data) > 1 else None)
+    elif data.startswith('offers'):
         offer_id = data.split(':')[1]
         await send_special_offers(update, context, offer_id if len(data) > 1 else None)
-    elif data.startswith('Меню'):
+    elif data.startswith('menu'):
         await show_user_menu(update, context)
+async def all_update_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info(f"Received update: {update}")
 def main():
     application = Application.builder().token("6564573865:AAFz0XogD4kPuoBsUqNq0PRbDs9ybn0i96E").build()
     conv_handler = ConversationHandler(
@@ -258,19 +298,20 @@ def main():
                 
         RESULT: [MessageHandler(filters.TEXT & ~filters.COMMAND, result)],
         HELP: [MessageHandler(filters.Regex('^(🆘 Попросить помощь)$'), help)],
-        #REGISTRATION_STEP_1: [MessageHandler(filters.TEXT & ~filters.COMMAND, registration_step_1)],
+        MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, show_menu)],  # Add your MENU state here
     },
     fallbacks=[CommandHandler('cancel', cancel)],)
+    application.add_handler(MessageHandler(filters.ALL, all_update_handler))
 
     
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler('register', register))
     application.add_handler(CommandHandler('menu', show_user_menu))
-    application.add_handler(CommandHandler(button_callback_handler))
+    application.add_handler(CallbackQueryHandler(button_callback_handler))
     scheduler = AsyncIOScheduler()
     scheduler.add_job(send_notifications, 'interval', seconds=130, args=[application.bot])
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_menu_with_buttons, 'interval', seconds=10, args=[application.bot])
+    #scheduler = AsyncIOScheduler()
+    #scheduler.add_job(send_menu_with_buttons, 'interval', seconds=10, args=[application.bot])
     scheduler.start()
 
     loop = asyncio.get_event_loop()
