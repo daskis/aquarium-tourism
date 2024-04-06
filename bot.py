@@ -71,31 +71,27 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 async def question_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, question_number: int) -> int:
-    logger.info(f"User {update.effective_user.id} is in QUESTION_{question_number}, answered: {update.message.text}")
+    #async def question_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, question_number: int) -> int:
     user_answer = update.message.text
-    if question_number == 0:
-        next_question_number = question_number 
-        reply_keyboard = [list(map(lambda x: x[0], answers[next_question_number]))]
-        await update.message.reply_text(
-            questions[next_question_number],
-            reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True),
-        )
-        return next_question_number + 1
-    for answer in answers[question_number - 1]:
-        if user_answer == answer[0]:
-            if 'results' not in context.user_data:
-                context.user_data['results'] = {}
-            context.user_data['results'][answer[1]] = context.user_data['results'].get(answer[1], 0) + 1
-            break
+    # Assuming 'questions' and 'answers' arrays are 0-indexed and directly correspond to question numbers
+    logger.info(f"User {update.effective_user.id} is in QUESTION_{question_number}, answered: {user_answer}")
 
+    # Process the answer
+    if 'results' not in context.user_data:
+        context.user_data['results'] = {}
+    # Example processing logic, adjust according to your answer handling
+    selected_option = next((option for option in answers[question_number] if option[0] == user_answer), None)
+    if selected_option:
+        result_key = selected_option[1]
+        context.user_data['results'][result_key] = context.user_data['results'].get(result_key, 0) + 1
+
+    # Move to the next question or end
     if question_number < len(questions) - 1:
         next_question_number = question_number + 1
         reply_keyboard = [list(map(lambda x: x[0], answers[next_question_number]))]
-        await update.message.reply_text(
-            questions[next_question_number],
-            reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True),
-        )
-        return next_question_number + 1
+        await update.message.reply_text(questions[next_question_number],
+                                         reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+        return next_question_number
     else:
         return await result(update, context)
 
@@ -103,7 +99,11 @@ async def result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     final_class = max(context.user_data['results'], key=context.user_data['results'].get)
     await update.message.reply_text(f"Твой класс: {final_class}. Используй команду /menu, чтобы увидеть меню.",reply_markup=ReplyKeyboardRemove())
     logger.info("Attempting to remove reply keyboard for user %s", update.effective_user.id)
+    user_id = update.effective_user.id
+    username = update.effective_user.username or "unknown"  # Fallback to 'unknown' if username is None
+    final_class = max(context.user_data['results'], key=context.user_data['results'].get)
     
+    save_user_data(user_id, username, final_class, "")
     return ConversationHandler.END
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return start_choice
@@ -121,7 +121,7 @@ async def send_notifications(bot):
     conn.close()
 
     for user_id, user_class in users:
-        message = "Специальное предложение для вашего класса: {user_class}"
+        message = f"Специальное предложение для вашего класса: {user_class}: Получите 6% скидку на заправки!"
         try:
             await bot.send_message(chat_id=user_id, text=message)
         except Exception as e:
@@ -139,7 +139,7 @@ async def send_menu_with_buttons(update: Update, context: ContextTypes.DEFAULT_T
     if user_data:
         username, character_class, image_path, speed, cunning, luck = user_data
         # Формируем сообщение пользователя с его данными
-        personal_message = f"Имя: {username}\nКласс: {character_class}\nСкорость: {speed}, Хитрость: {cunning}, Удача: {luck}"
+        personal_message = f"Имя: {username}\nКласс: {character_class}\nСкорость(Cкидка на Питстопах): {speed}%,\n Хитрость(Cкидка в Магазинах): {cunning}%,\n Удача(Скидка в Отелях): {luck}%"
         
         # Создаем клавиатуру с кнопками
         keyboard = [
@@ -161,23 +161,7 @@ async def send_menu_with_buttons(update: Update, context: ContextTypes.DEFAULT_T
         await context.bot.send_message(chat_id=user_id, text="Профиль пользователя не найден. Выполните регистрацию, используя команду /start.")
     
     conn.close()
-# async def show_user_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     user_id = update.message.from_user.id
-#     conn = sqlite3.connect('users.db')
-#     cursor = conn.cursor()
-#     cursor.execute('SELECT username, class, image_path, speed, cunning, luck FROM users WHERE user_id = ?', (user_id,))
-#     user_data = cursor.fetchone()
-#     conn.close()
-#     if user_data:
-#         username, character_class, image_path, speed, cunning, luck = user_data
-#         message = f"Имя: {username}\nКласс: {character_class}\nСкорость: {speed}, Хитрость: {cunning}, Удача: {luck}"
-#         await update.message.reply_text(message)
-#         if image_path and os.path.exists(image_path):
-#             await update.message.reply_photo(photo=open(image_path, 'rb'))
-#         else:
-#             await update.message.reply_text("Изображение профиля отсутствует.")
-#     else:
-#         await update.message.reply_text("Профиль пользователя не найден. Выполните регистрацию, используя команду /register.")
+
 
 async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Assuming send_menu_with_buttons is adapted to work with an update object
@@ -189,13 +173,14 @@ async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END 
 
 async def send_special_quest(update: Update, context: ContextTypes.DEFAULT_TYPE, quest_id=None):
-    conn = sqlite3.connect('quests_offers.db')
+    conn = sqlite3.connect('users.db')  # Ensure this points to the correct database
     cursor = conn.cursor()
     
+    # Adjusted to use `quest_id` instead of `id`
     if quest_id is None:
         cursor.execute('SELECT * FROM quests ORDER BY RANDOM() LIMIT 1')
     else:
-        cursor.execute('SELECT * FROM quests WHERE id = ?', (quest_id,))
+        cursor.execute('SELECT * FROM quests WHERE quest_id = ?', (quest_id,))
     
     quest = cursor.fetchone()
 
@@ -203,64 +188,95 @@ async def send_special_quest(update: Update, context: ContextTypes.DEFAULT_TYPE,
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Квест не найден.")
         return
 
+    # Correctly unpack the quest details
     quest_id, title, description, image_url = quest
-    cursor.execute('SELECT id FROM quests WHERE id < ? ORDER BY id DESC LIMIT 1', (quest_id,))
+    cursor.execute('SELECT quest_id FROM quests WHERE quest_id < ? ORDER BY quest_id DESC LIMIT 1', (quest_id,))
     prev_quest = cursor.fetchone()
     prev_quest_id = prev_quest[0] if prev_quest else None
 
-    cursor.execute('SELECT id FROM quests WHERE id > ? ORDER BY id ASC LIMIT 1', (quest_id,))
+    cursor.execute('SELECT quest_id FROM quests WHERE quest_id > ? ORDER BY quest_id ASC LIMIT 1', (quest_id,))
     next_quest = cursor.fetchone()
     next_quest_id = next_quest[0] if next_quest else None
 
-    message = f"*{quest['title']}*\n{quest['description']}"
+    message = f"*{title}*\n{description}"  # Fixed to use variables instead of dictionary keys
     keyboard = [
         [InlineKeyboardButton("Следующий квест", callback_data=f'quests:{next_quest_id}'),
          InlineKeyboardButton("Предыдущий квест", callback_data=f'quests:{prev_quest_id}')],
         [InlineKeyboardButton("Меню", callback_data='menu')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    if quest['image_url']:
-        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=quest['image_url'], caption=message, reply_markup=reply_markup, parse_mode="Markdown")
+    if image_url:
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_url, caption=message, reply_markup=reply_markup, parse_mode="Markdown")
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message, reply_markup=reply_markup, parse_mode="Markdown")
 
 
 async def send_special_offers(update: Update, context: ContextTypes.DEFAULT_TYPE, offer_id=None):
-    # Здесь логика для выбора спецпредложения по offer_id, если он указан,
-    # или случайного спецпредложения, если offer_id=None
-    # Также необходимо реализовать логику для определения next_offer_id и prev_offer_id
+    conn = sqlite3.connect('users.db')  # Ensure this points to the correct database
+    cursor = conn.cursor()
+    
+    # Fetch a specific or random offer based on offer_id
+    if offer_id is None:
+        cursor.execute('SELECT * FROM offers ORDER BY RANDOM() LIMIT 1')
+    else:
+        cursor.execute('SELECT * FROM offers WHERE offer_id = ?', (offer_id,))
+    
+    offer = cursor.fetchone()
 
-    offer = {"id": "offer_id", "title": "Скидка 50% на все приключения!", "description": "Только сегодня и только для вас!", "image_url": "http://example.com/offer.jpg"}
-    next_offer_id = "next_offer_id"
-    prev_offer_id = "prev_offer_id"
+    if offer is None:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Спецпредложение не найдено.")
+        return
 
-    message = f"*{offer['title']}*\n{offer['description']}"
+    # Correctly unpack the offer details
+    offer_id, title, description, discount, image_path = offer
+
+    # Fetch previous and next offer IDs
+    cursor.execute('SELECT offer_id FROM offers WHERE offer_id < ? ORDER BY offer_id DESC LIMIT 1', (offer_id,))
+    prev_offer = cursor.fetchone()
+    prev_offer_id = prev_offer[0] if prev_offer else None
+
+    cursor.execute('SELECT offer_id FROM offers WHERE offer_id > ? ORDER BY offer_id ASC LIMIT 1', (offer_id,))
+    next_offer = cursor.fetchone()
+    next_offer_id = next_offer[0] if next_offer else None
+
+    message = f"*{title}*\n{description}"  # Use variables directly
     keyboard = [
-        [InlineKeyboardButton("Следующее предложение", callback_data=f'offers:{next_offer_id}'),
-         InlineKeyboardButton("Предыдущее предложение", callback_data=f'offers:{prev_offer_id}')],
+        [InlineKeyboardButton("Следующее предложение", callback_data=f'offers:{next_offer_id}' if next_offer_id else 'menu'),
+         InlineKeyboardButton("Предыдущее предложение", callback_data=f'offers:{prev_offer_id}' if prev_offer_id else 'menu')],
         [InlineKeyboardButton("Меню", callback_data='menu')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    if offer['image_url']:
-        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=offer['image_url'], caption=message, reply_markup=reply_markup, parse_mode="Markdown")
+
+    if image_path.startswith("http"):
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_path, caption=message, reply_markup=reply_markup, parse_mode="Markdown")
     else:
+        # If the image_path does not start with "http", you might want to handle it differently.
+        # This example sends a message without an image.
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message, reply_markup=reply_markup, parse_mode="Markdown")
+
 
 
 async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("I am called")
     query = update.callback_query
     await query.answer()
-    data = query.data   
-    logger.info(f"Received callback query: {query.data}")
-    if data.startswith('quests'):
-        quest_id = data.split(':')[1]
-        await send_special_quest(update, context, quest_id if len(data) > 1 else None)
-    elif data.startswith('offers'):
-        offer_id = data.split(':')[1]
-        await send_special_offers(update, context, offer_id if len(data) > 1 else None)
-    elif data.startswith('menu'):
-        await show_user_menu(update, context)
+    data = query.data
+    logger.info(f"Received callback query: {data}")
+
+    # Use try-except to catch the IndexError and handle it.
+    try:
+        action, item_id = data.split(':', 1)  # Split data into action and item_id, if possible.
+    except ValueError:
+        action = data  # If split fails, assume the whole data is an action.
+        item_id = None  # No item ID is provided.
+
+    if action == 'quests':
+        await send_special_quest(update, context, quest_id=item_id)
+    elif action == 'offers':
+        await send_special_offers(update, context, offer_id=item_id)
+    elif action == 'menu':
+        await send_menu_with_buttons(update, context)  # Ensure this function exists or adjust accordingly.
+
 #async def all_update_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #   logger.info(f"Received update: {update}")
 def main():
