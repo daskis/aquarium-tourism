@@ -3,6 +3,8 @@ import sqlite3
 import asyncio
 import os
 import requests
+
+
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters, CallbackQueryHandler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -10,6 +12,24 @@ from apscheduler.triggers.interval import IntervalTrigger
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+# ДАЛЕРУ: ПОСМОТРЕТЬ
+import g4f
+import sys
+import nest_asyncio
+nest_asyncio.apply()
+print(sys.version)
+def ask(message="", prompt=""):
+    response = g4f.ChatCompletion.create(
+        model=g4f.models.gpt_35_turbo_16k,
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": message}
+        ],
+        # provider=g4f.Provider.Aura
+    )
+    return response
 
 # States
 (START_CHOICE, QUESTION_1, QUESTION_2, QUESTION_3, QUESTION_4, QUESTION_5, HELP, RESULT, MENU) = range(9)
@@ -84,17 +104,19 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # API request to ChatGPT
     
     try:
-        response = requests.post(
-        "https://api.openai.com/v1/completions",
-        json={
-            "model": "gpt-3.5-turbo",  # Choose an appropriate model
-            "prompt": context_plus_question,
-            "max_tokens": 550,  # Adjust based on your needs
-        },
-        headers={
-            "Authorization": f"Bearer "
-        }
-        ).json() # This will raise an exception for HTTP error responses
+        # ДАЛЕРУ: ПОСМОТРЕТЬ
+    #     response = requests.post(
+    #     "https://api.openai.com/v1/completions",
+    #     json={
+    #         "model": "gpt-3.5-turbo",  # Choose an appropriate model
+    #         "prompt": context_plus_question,
+    #         "max_tokens": 550,  # Adjust based on your needs
+    #     },
+    #     headers={
+    #         "Authorization": f"Bearer "
+    #     }
+    #     ).json() # This will raise an exception for HTTP error responses
+        responce = ask(context_plus_question)
     except requests.exceptions.RequestException as e:
         logger.error(f"Request to OpenAI failed: {e}")
         await update.message.reply_text("Sorry, I couldn't process your request.")
