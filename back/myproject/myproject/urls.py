@@ -43,6 +43,7 @@ urlpatterns = [
     path('api/v1/auth/', include("users.urls")),
     # path('api/v1/pitsops/', include("pitstop.urls")),
     path('api/v1/travels/', include("travels.urls")),
+    path('api/v1/bot/', include("bot.urls")),
 
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,9 +1,11 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
+
 from .serializer import UserRegisterSerializer, LoginSerializer, \
     UpdateTokensSerializer, UserHeaderSerializer
 from .models import User
@@ -133,12 +135,5 @@ class UpdateTokens(GenericAPIView):
         resp.set_cookie('refresh_token', serializer.data['refresh_token'], path='/',secure=False, httponly=True)
         return resp
 
-
-class TestAuthView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        data = {'it': 'works'}
-        return Response(data, status=status.HTTP_200_OK)
 
 # Create your views here.

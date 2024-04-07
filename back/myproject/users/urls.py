@@ -1,9 +1,11 @@
 
-from django.conf.urls.static import static
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
 from .views import *
-from django.conf import settings
-from django.views.static import serve
+
+router = DefaultRouter()
+
 
 urlpatterns = [
     path('register/', RegisterSendOTPView.as_view(), name='register'),

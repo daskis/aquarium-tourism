@@ -1,7 +1,7 @@
 from django.core.mail import EmailMessage
 import random
 from django.conf import settings
-from .models import User, OneTimePassword
+from .models import  OneTimePassword
 from django.contrib.sites.shortcuts import get_current_site
 
 

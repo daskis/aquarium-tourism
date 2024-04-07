@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from users.models import *
+
 
 
 # Create your models here.
@@ -25,6 +25,7 @@ class Facility(models.Model):
     type_facility = models.CharField(max_length=20, choices=TYPES_FOR_FACILITIES)
     owner = models.ForeignKey('users.User', on_delete=models.RESTRICT, default=None, null=True)
 
+
     square = models.FloatField(max_length=20, verbose_name='Площадь')
     MFZ = models.CharField(max_length=20, verbose_name="МФЗ")
     cafe = models.IntegerField(verbose_name='Места для приготовления пищи')
@@ -39,6 +40,7 @@ class Facility(models.Model):
     pitch_vip = models.IntegerField(verbose_name="Питч-ВИП")
     capacity = models.IntegerField(verbose_name="Вместимость")
     employee_number = models.IntegerField(verbose_name="Количество вакансий")
+    locations = models.ForeignKey('Locations', on_delete=models.RESTRICT)
 
 
     def clean(self):
@@ -47,10 +49,11 @@ class Facility(models.Model):
         a = [self.square > 1,self.cafe > 50,self.power_charging > 2,self.shower > 10,self.buildings > 7, self.pitch > 20,self.pitch_vip > 10,self.capacity > 74, self.employee_number > 22]
         # if self.square >= 1 or self.cafe > 50 or self.power_charging > 2 or self.shower > 10 or self.buildings > 7 or self.pitch > 20 or self.pitch_vip > 10 or self.capacity > 74 or self.employee_number > 22:
         #     pass
+        flag = True
         for i in a:
-            if i == True:
-                type = "HUB"
-                break
+            flag *=( i == True)
+        if flag is True:
+            type = "HUB"
 
         a = [self.square > 3,self.power_charging > 4,self.shower > 20,self.buildings > 12, self.pitch > 30,self.pitch_vip > 20,self.capacity > 124, self.employee_number > 33]
         for i in a:
@@ -77,6 +80,7 @@ class Locations(models.Model):
     city = models.CharField(max_length=20)
     status = models.CharField(choices=STATUS_FOR_LOCATIONS, max_length=10, default="NOT_ACTIVE")
     in_favorites = models.BooleanField(default=False)
+
 
 
 class ImageLocation(models.Model):

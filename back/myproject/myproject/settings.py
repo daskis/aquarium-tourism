@@ -38,7 +38,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
 
-
+    'bot',
     'users',
     'travels',
     # default
@@ -84,7 +84,7 @@ REST_FRAMEWORK = {
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    'http://172.20.10.14:5173','http://172.18.0.1:5173'
+    'http://172.20.10.14:5173','http://172.18.0.1:5173','http://172.17.0.1:5173'
 ]
 
 ROOT_URLCONF = 'myproject.urls'

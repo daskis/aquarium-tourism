@@ -15,30 +15,33 @@ class ImageLocationViewSet(ModelViewSet):
     queryset = ImageLocation.objects.all()
     serializer_class = ImageLocationSerializer
 
-    @action(methods=["GET"],detail=True)
+    @action(methods=["GET"], detail=True)
     def retrive(self, request, pk):
         print(pk)
         queryset = ImageLocation.objects.values().filter(location=pk)
         return Response(queryset)
 
 
-
-
 class StepsViewSet(ModelViewSet):
     queryset = Steps.objects.all()
     serializer_class = StepsSerializer
 
-
-    @action(methods=["GET"],detail=True)
+    @action(methods=["GET"], detail=True)
     def retrive(self, request, pk):
         print(pk)
         queryset = Steps.objects.values().filter(location=pk)
         return Response(queryset)
 
+
 class FacilityViewSet(ModelViewSet):
     queryset = Facility.objects.all()
     serializer_class = FacilitySerializer
 
-
+    @action(methods=["GET"], detail=True, )
+    def retrive(self, request, pk):
+        print(pk)
+        queryset = Facility.objects.filter(type_facility=pk).values()
+        print(queryset.__dict__)
+        return Response(queryset)
 
 # Create your views here.

@@ -108,3 +108,5 @@ class UpdateTokensSerializer(serializers.ModelSerializer):
             'refresh_token': str(user_token.get('refresh')),
             'access_token': str(user_token.get('access')),
         }
+
+

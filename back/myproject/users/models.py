@@ -76,17 +76,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             ("change_role", "Can change the role of user"),
         ]
 
-class SubUser(models.Model):
-    user_id = models.AutoField(primary_key=True)  # Поле для хранения ID пользователя
-    username = models.CharField(max_length=100)  # Имя пользователя
-    user_class = models.CharField(max_length=100)  # Класс пользователя
-    image_path = models.CharField(max_length=100)  # Путь к изображению
-    speed = models.IntegerField(default=1)  # Параметр "скорость"
-    cunning = models.IntegerField(default=1)  # Параметр "хитрость"
-    luck = models.IntegerField(default=1)  # Параметр "удача"
 
-    def __str__(self):
-        return self.username
 
 class OneTimePassword(models.Model):
     email = models.EmailField(max_length=255, blank=True, null=True)
