@@ -4,3 +4,4 @@ export * from './Auth/Auth.tsx';
 export * from './User/User.tsx';
 export * from './Home/Home.tsx';
 export * from './Map/Map.tsx';
+export * from './Sales/Sales.tsx';

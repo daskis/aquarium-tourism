@@ -27,13 +27,13 @@ export const UserTabs = () => {
                     className={classNames(
                         cls.listItem,
                         {
-                            [cls.listItemActive]: item.link === pathname,
+                            [cls.listItemActive]: pathname.includes(`/app${item.link}`),
                         },
                         [],
                     )}
                     key={item.link}
                 >
-                    <Link size={SizeEnum.H2} color={ColorEnum.LINK} to={item.link}>
+                    <Link size={SizeEnum.H2} color={ColorEnum.LINK} to={`/app${item.link}`}>
                         {item.icon}
                     </Link>
                 </li>

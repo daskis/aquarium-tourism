@@ -11,5 +11,5 @@ export interface RegisterProps extends AuthProps {
 }
 
 export interface ResponseProps {
-    accessToken: string;
+    access_token: string;
 }

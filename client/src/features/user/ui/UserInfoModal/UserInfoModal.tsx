@@ -3,7 +3,7 @@ import { IUserInfoChangeProps } from '@features/user/lib';
 import Close from '@assets/icons/close.svg';
 import { classNames } from '@shared/lib';
 import { useEffect, useRef } from 'react';
-import { UserChangeForm, UserInfoForm } from '@features/user/ui';
+import { UserInfoForm } from '@features/user/ui';
 
 export const UserInfoModal = ({ isOpen, handleChange }: IUserInfoChangeProps) => {
     const wrapperRef = useRef<HTMLDivElement>(null);

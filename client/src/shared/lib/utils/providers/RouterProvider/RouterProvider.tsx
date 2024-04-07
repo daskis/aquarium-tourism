@@ -1,49 +1,82 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { Auth, Home, Login, Register, User, Map } from '@pages/ui';
+import { Auth, Home, Login, Register, User, Map, Sales } from '@pages/ui';
 import { Toolbar } from '@widgets/ui';
-import { UserArchive, UserBasket, UserFamily, UserLiked, UserSteps } from '@features/user/ui';
+import { UserActions, UserArchive, UserBasket, UserFamily, UserLiked, UserSteps } from '@features/user/ui';
+import { AuthProvider } from '@shared/lib/utils/providers/AuthProvider/AuthProvider.tsx';
+import { MapMarkers } from '@pages/ui/MapMarkers/MapMarkers.tsx';
 
 export const router = createBrowserRouter([
     {
         path: '/',
-        element: <Toolbar />,
+        element: <AuthProvider />,
         children: [
             {
-                index: true,
-                element: <Home />,
-            },
-            {
-                path: 'user',
-                element: <User />,
+                path: 'app',
+                element: <Toolbar />,
                 children: [
                     {
-                        path: 'family',
-                        element: <UserFamily />,
+                        path: 'home',
+                        element: <Home />,
                     },
                     {
-                        path: 'basket',
-                        element: <UserBasket />,
-                    },
-                    {
-                        path: 'liked',
-                        element: <UserLiked />,
-                    },
-                    {
-                        path: 'archive',
+                        path: 'user',
+                        element: <User />,
                         children: [
                             {
                                 index: true,
-                                element: <UserArchive />,
+                                element: <UserActions />,
                             },
                             {
-                                path: ':id',
-                                element: <UserSteps />,
+                                path: 'family',
+                                element: <UserFamily />,
+                            },
+                            {
+                                path: 'basket',
+                                children: [
+                                    {
+                                        index: true,
+                                        element: <UserBasket />,
+                                    },
+                                    {
+                                        path: ':id',
+                                        element: <UserSteps />,
+                                    },
+                                ],
+                            },
+                            {
+                                path: 'liked',
+                                children: [
+                                    {
+                                        index: true,
+                                        element: <UserLiked />,
+                                    },
+                                    {
+                                        path: ':id',
+                                        element: <UserSteps />,
+                                    },
+                                ],
+                            },
+                            {
+                                path: 'archive',
+                                children: [
+                                    {
+                                        index: true,
+                                        element: <UserArchive />,
+                                    },
+                                    {
+                                        path: ':id',
+                                        element: <UserSteps />,
+                                    },
+                                ],
                             },
                         ],
                     },
+                    { path: 'map', element: <Map /> },
+                    { path: 'map/:id', element: <MapMarkers /> },
+
+                    { path: 'sales', element: <Sales /> },
                 ],
             },
-            { path: '/map', element: <Map /> },
         ],
     },
     {

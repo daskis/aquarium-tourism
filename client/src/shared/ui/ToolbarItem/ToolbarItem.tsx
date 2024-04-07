@@ -9,7 +9,7 @@ export const ToolbarItem = ({ link, icon }: IToolbarItemProps) => {
     const [isActive, setIsActive] = useState<boolean>(false);
     const { pathname } = useLocation();
     useEffect(() => {
-        if (pathname === link) {
+        if (pathname.includes(link)) {
             setIsActive(true);
         } else {
             setIsActive(false);

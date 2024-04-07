@@ -4,6 +4,7 @@ import { ColorEnum, SizeEnum } from '@shared/lib';
 import UserIcon from '@assets/icons/userIcon.svg';
 import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useGetStepsById } from '@features/location/lib';
 
 interface IUserStep {
     img: string;
@@ -14,51 +15,35 @@ interface IUserStep {
 }
 
 export const UserSteps = () => {
-    const params = useParams();
+    const { id } = useParams();
+    const { trigger, stepsData, steptLoading } = useGetStepsById();
     useEffect(() => {
-        console.log(params);
-    }, [params]);
-    const list: IUserStep[] = [
-        {
-            img: 'asfgwasfs',
-            title: 'asfgwasfs',
-            interval: ['asfgwasfs', 'fvsg'],
-            status: 'asfgwasfs',
-            coordinates: ['asfgwasfs', 'asfgwasfs'],
-        },
-        {
-            img: 'asfgwasfs',
-            title: 'asfgwasfs',
-            interval: ['asfgwasfs', 'fvsg'],
-            status: 'asfgwasfs',
-            coordinates: ['asfgwasfs', 'asfgwasfs'],
-        },
-    ];
+        id ? trigger(id) : null;
+    }, [id]);
     return (
         <ul className={cls.list}>
-            {list.map((item) => (
-                <li className={cls.listItem} key={item.img}>
-                    <div className={cls.avatar}>
-                        {/*<img src="" alt="" />*/}
-                        <UserIcon />
-                    </div>
-                    <div className={cls.info}>
-                        <Heading color={ColorEnum.LIGHT} size={SizeEnum.H7}>
-                            {item.title}
-                        </Heading>
-                        <Paragraph color={ColorEnum.LIGHT} size={SizeEnum.H4}>
-                            {item.interval.length > 1
-                                ? `С ${item.interval[0]} до ${item.interval[1]}`
-                                : item.interval[0]}
-                        </Paragraph>
-                    </div>
-                    <div className={cls.link}>
-                        <Link size={SizeEnum.H4} color={ColorEnum.SECONDARY} to={'/some'}>
-                            Подробнее
-                        </Link>
-                    </div>
-                </li>
-            ))}
+            {stepsData &&
+                stepsData.map((item) => (
+                    <li className={cls.listItem} key={item.img}>
+                        <div className={cls.avatar}>
+                            {/*<img src="" alt="" />*/}
+                            <UserIcon />
+                        </div>
+                        <div className={cls.info}>
+                            <Heading color={ColorEnum.LIGHT} size={SizeEnum.H7}>
+                                {item.title}
+                            </Heading>
+                            <Paragraph color={ColorEnum.LIGHT} size={SizeEnum.H4}>
+                                {`С ${item.array_interval.time_started} до ${item.array_interval.time_ended} `}
+                            </Paragraph>
+                        </div>
+                        <div className={cls.link}>
+                            <Link size={SizeEnum.H4} color={ColorEnum.SECONDARY} to={`/app/map/${item.id}`}>
+                                На карте
+                            </Link>
+                        </div>
+                    </li>
+                ))}
         </ul>
     );
 };

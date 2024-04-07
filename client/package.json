@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@2gis/mapgl": "^1.46.0",
+    "@2gis/mapgl-clusterer": "^2.5.0",
     "@reduxjs/toolkit": "^2.2.3",
     "@svgx/vite-plugin-react": "^1.0.1",
     "@types/react-router-dom": "^5.3.3",
@@ -18,7 +19,8 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.2",
     "react-redux": "^9.1.0",
-    "react-router-dom": "^6.22.3"
+    "react-router-dom": "^6.22.3",
+    "react-toastify": "^10.0.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

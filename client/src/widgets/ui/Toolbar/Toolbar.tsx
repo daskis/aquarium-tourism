@@ -11,19 +11,19 @@ export const Toolbar = () => {
     const list: IToolbarItemProps[] = [
         {
             icon: <Home />,
-            link: '/',
+            link: '/app/home',
         },
         {
             icon: <Map />,
-            link: '/map',
+            link: '/app/map',
         },
         {
             icon: <Sales />,
-            link: '/sales',
+            link: '/app/sales',
         },
         {
             icon: <User />,
-            link: '/user',
+            link: '/app/user',
         },
     ];
 

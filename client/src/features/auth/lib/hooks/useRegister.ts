@@ -1,28 +1,21 @@
 import { useEffect } from 'react';
-import { useAppDispatch } from '@shared/lib';
 import { useNavigate } from 'react-router-dom';
 import { RegisterProps, useRegisterMutation } from '@features/auth/lib';
-// import { toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 export const useRegister = () => {
     const [trigger, { data, error, isLoading }] = useRegisterMutation();
-    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     useEffect(() => {
-        // if (data?.accessToken) {
-        //     localStorage.setItem('accessToken', data.accessToken.split(' ')[0]);
-        //     dispatch(setToken(data.accessToken));
-        //     toast('Успех!');
-        //     setTimeout(() => {
-        //         navigate('/app');
-        //     }, 2000);
-        // }
-        // if (error) {
-        //     // @ts-ignore
-        //     toast.error(error?.data?.message);
-        // }
-        if (data) {
-            console.log(data);
+        if (data?.access_token) {
+            localStorage.setItem('accessToken', data.access_token.split(' ')[0]);
+            toast('Успех!');
+            setTimeout(() => {
+                navigate('/app/home');
+            }, 2000);
+        }
+        if (error) {
+            console.log(error);
         }
     }, [data]);
     const registerTrigger = async (values: RegisterProps) => {

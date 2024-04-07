@@ -5,5 +5,5 @@ export interface ILinkProps extends DetailedHTMLProps<HTMLAttributes<HTMLLinkEle
     size: SizeEnum;
     color: ColorEnum;
     children: ReactNode;
-    to: string;
+    to: any;
 }
