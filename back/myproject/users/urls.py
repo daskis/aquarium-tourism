@@ -12,6 +12,7 @@ urlpatterns = [
     path('login/', LoginUserView.as_view(), name='login'),
     #path('somewhat/dont_attract', TestAuthView.as_view(), name='some'),
     path('token/refresh/', UpdateTokens.as_view(), name='token_refresh'),
+    path('user/me/', UserMe.as_view(),name="userme"),
 ]
 
 

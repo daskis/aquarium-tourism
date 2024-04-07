@@ -16,7 +16,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         repeatPassword = attrs.get('repeatPassword', '')
         if password != repeatPassword:
             raise serializers.ValidationError("passwords do not match")
-
         return attrs
 
     class Meta:
@@ -65,17 +64,17 @@ class LoginSerializer(serializers.ModelSerializer):
         user_token = user.tokens()
         print(RefreshToken(user_token.get('refresh')))
 
-
         return {
             'access_token': str(user_token.get('access')),
             'refresh_token': str(user_token.get('refresh')),
         }
-
-
 class UserHeaderSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(read_only=True, )
+    email = serializers.CharField(read_only=True)
+
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ['username', 'email', 'avatar']
 
 
 class RegistrationConfirmView(serializers.ModelSerializer):
@@ -95,27 +94,11 @@ class UpdateTokensSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
 
         refresh_token = self.context.get('refresh_token')
-        #refresh_token = attrs
-        print('111', User.objects.filter(username='101277').first().refresh_token)
-
-        # try:
-            # now = datetime.utcnow()
-            # if refresh_token.payload['exp'] < now.timestamp():
-            #     AuthenticationFailed("Refresh token истек")
-        print(refresh_token, "+++")
-
-        print(User.objects.filter(username='101277').first().refresh_token, "---")
         user = User.objects.filter(refresh_token=refresh_token).first()
-        print('111',User.objects.filter(username='101277').first().refresh_token == refresh_token)
-        # print(user)
         if user is None:
             raise TokenError
         refresh_token = RefreshToken(refresh_token)
 
-        # except TokenError as token_err:
-        #     raise serializers.ValidationError({"cookie":str(token_err)})
-        # except Exception as err:
-        #     return serializers.ValidationError({"Error":str(err)})
         user_token = user.tokens()
 
         user_token.get('refresh')

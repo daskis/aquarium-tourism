@@ -14,8 +14,13 @@ class ImageLocationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class StepsSerializers(serializers.ModelSerializer):
+class StepsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Steps
         fields = '__all__'
 
+
+class FacilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Facility
+        fields = '__all__'
