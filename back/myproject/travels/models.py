@@ -15,9 +15,9 @@ STATUS_FOR_STEPS = {
     "pending": "PENDING"
 }
 TYPES_FOR_FACILITIES = {
-    "pitstop": "PITSTOP",
-    "hub": "HUB",
-    "resort": "RESORT"
+    "PITSTOP": "pitstop",
+    "HUB": "hub",
+    "RESORT": "resort"
 }
 
 
